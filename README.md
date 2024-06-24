@@ -1,7 +1,7 @@
 # shadercompat
 
 Mod support for Minecraft shaders.
-Feel free to add support for other mods by submitting pull requests.
+Feel free to add support for a mod or shader by a submitting pull request.
 
 ## Supported Shaders
 
@@ -14,7 +14,7 @@ This tool works by mapping categorized entries (like blocks and items) to the sp
 ## Usage
 
 ```
- -c string
+  -c string
         file containing categories
   -m string
         directory containing grouped mappings of mods
