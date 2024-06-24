@@ -32,8 +32,8 @@ Blocks, items etc. will be referred to as entries.
 
 ### Mod support
 
-A mods blocks, items etc. are categorized in the `mods/` folder inside a *single* `.gm` file (a single file per mod!). *
-*gm** stands for **g**rouped **m**apping.
+A mods blocks, items etc. are categorized in the `mods/` folder inside a *single* `.gm` file (a single file per mod!).
+**gm** stands for **g**rouped **m**apping.
 
 #### Categories & Entries
 
