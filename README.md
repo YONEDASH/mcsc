@@ -14,7 +14,7 @@ This tool works by mapping categorized entries (like blocks and items) to the sp
  -c string
         file containing categories
   -m string
-        directory containing grouped mod shaders
+        directory containing grouped mappings of mods
   -s string
         directory containing shaders
   -shader string

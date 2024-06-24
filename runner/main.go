@@ -16,7 +16,7 @@ import (
 
 var (
 	shaderMappingsPath = flag.String("s", "", "directory containing shaders")
-	modMappingsPath    = flag.String("m", "", "directory containing grouped mod shaders")
+	modMappingsPath    = flag.String("m", "", "directory containing grouped mappings of mods")
 	categoriesPath     = flag.String("c", "", "file containing categories")
 	shaderName         = flag.String("shader", "", "shader name based on name set in shaders")
 	sourcePath         = flag.String("source", "", "shader source directory path OR zip file path")
