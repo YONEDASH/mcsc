@@ -1,0 +1,26 @@
+{
+  "categories": [
+    "BlockGrass",
+    "BlockFlatGrass",
+    "BlockFlatSingle",
+    "BlockFlatDouble",
+    "BlockCrop",
+    "BlockLeaves",
+    "BlockVines",
+    "BlockPlant",
+    "BlockLilypad",
+    "BlockSapling",
+    "BlockOre",
+    "BlockThin",
+    "BlockEmissive",
+    "BlockEmissiveColored",
+    "BlockGlass",
+    "BlockTranslucent",
+    "BlockPortal",
+    "BlockWater",
+    "BlockSign",
+    "BlockPolished",
+    "ItemEmissive",
+    "ItemEmissiveColored"
+  ]
+}

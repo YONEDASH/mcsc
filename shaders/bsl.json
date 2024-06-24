@@ -1,0 +1,123 @@
+{
+  "name": "BSL",
+  "types": {
+    "block": {
+      "file_path": "./shaders/block.properties"
+    },
+    "item": {
+      "file_path": "./shaders/item.properties"
+    }
+  },
+  "separator": " ",
+  "mappings": {
+    "block": {
+      "BlockFlatGrass": [
+        {
+          "to": "block.30100"
+        }
+      ],
+      "BlockFlatSingle": [
+        {
+          "to": "block.30101"
+        }
+      ],
+      "BlockFlatDouble": [
+        {
+          "to": "block.30102",
+          "transformer": "halfLower"
+        },
+        {
+          "to": "block.30103",
+          "transformer": "halfUpper"
+        }
+      ],
+      "BlockCrop": [
+        {
+          "to": "block.30104"
+        }
+      ],
+      "BlockLeaves": [
+        {
+          "to": "block.30105"
+        }
+      ],
+      "BlockVines": [
+        {
+          "to": "block.30106"
+        }
+      ],
+      "BlockPlant": [
+        {
+          "to": "block.30107"
+        }
+      ],
+      "BlockLilypad": [
+        {
+          "to": "block.30108"
+        }
+      ],
+      "BlockSapling": [
+        {
+          "to": "block.30109"
+        }
+      ],
+      "BlockThin": [
+        {
+          "to": "block.30109"
+        }
+      ],
+      "BlockEmissive": [
+        {
+          "to": "block.30200"
+        }
+      ],
+      "BlockEmissiveColored": [
+        {
+          "to": "block.30201"
+        }
+      ],
+      "BlockGlass": [
+        {
+          "to": "block.30301"
+        }
+      ],
+      "BlockTranslucent": [
+        {
+          "to": "block.30302"
+        }
+      ],
+      "BlockPolished": [
+        {
+          "to": "block.30302"
+        }
+      ],
+      "BlockPortal": [
+        {
+          "to": "block.30303"
+        }
+      ],
+      "BlockWater": [
+        {
+          "to": "block.30302"
+        }
+      ],
+      "BlockSign": [
+        {
+          "to": "block.30400"
+        }
+      ]
+    },
+    "item": {
+      "ItemEmissive": [
+        {
+          "to": "item.89"
+        }
+      ],
+      "ItemEmissiveColored": [
+        {
+          "to": "item.50"
+        }
+      ]
+    }
+  }
+}
