@@ -91,24 +91,24 @@ independent of shader mappings.
 
 `types` specifies the shader's types like blocks, items or entities. A type is structured as follows:
 
-```
+```json
 "TYPENAME": {
-  "file_path": "FILEPATH"
+"file_path": "FILEPATH"
 }
 ```
 
 `TYPENAME` being the type's name like `block` and `FILEPATH` the relative location of the `.properties` file in the
 shader's source.
-Typically types should look like this:
+Typically, types should look like this:
 
-```
+```json
 "types": {
-    "block": {
-      "file_path": "./shaders/block.properties"
-    },
-    "item": {
-      "file_path": "./shaders/item.properties"
-    }
+"block": {
+"file_path": "./shaders/block.properties"
+},
+"item": {
+"file_path": "./shaders/item.properties"
+}
 }
 ```
 
@@ -122,15 +122,15 @@ separated. Typically it is a space (` `).
 `mappings` specifies the mapping from a category (from `global/categories.json`) to a shader category. Those mappings
 are structured as follows:
 
-```
+```json
 "mappings": {
-    "TYPE": {
-      "CATEGORY": [
-            {
-            "to": "SHADER_PROPERTIES_KEY"
-            }
-        ],
-    }
+"TYPE": {
+"CATEGORY": [
+{
+"to": "SHADER_PROPERTIES_KEY"
+}
+],
+}
 }
 ```
 
@@ -149,19 +149,19 @@ Current transformers are listed below.
 - `halfUpperLower` - Combines `halfUpper` and `halfLower`.
   To get back to the example of two-block plants - that's how you would utilize transformers:
 
-```
+```json
  "mappings": {
-    "block": {
-      "BlockFlatDouble": [
-        {
-          "to": "SHADER_PROPERTIES_LOWER_BLOCK_KEY",
-          "transformer": "halfLower"
-        },
-        {
-          "to": "SHADER_PROPERTIES_UPPER_BLOCK_KEY",
-          "transformer": "halfUpper"
-        }
-      ],
-    }
+"block": {
+"BlockFlatDouble": [
+{
+"to": "SHADER_PROPERTIES_LOWER_BLOCK_KEY",
+"transformer": "halfLower"
+},
+{
+"to": "SHADER_PROPERTIES_UPPER_BLOCK_KEY",
+"transformer": "halfUpper"
+}
+],
+}
 }
 ```
