@@ -8,7 +8,7 @@ import (
 	"os"
 	"path"
 	"shadercompat/files"
-	"shadercompat/grouped_mapping"
+	"shadercompat/groupedmapping"
 	"shadercompat/properties"
 	"shadercompat/shader"
 	"strings"
@@ -68,7 +68,7 @@ func main() {
 	err = validateSectionCategories(modMappings, categories)
 	handleFatal(err)
 
-	log.Println("Loaded", len(modMappings), "mods with", grouped_mapping.CountEntries(modMappings), "entries.")
+	log.Println("Loaded", len(modMappings), "mods with", groupedmapping.CountEntries(modMappings), "entries.")
 
 	transformers := shader.InitTransformers()
 
@@ -222,7 +222,7 @@ func loadModMappings() (map[string][]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = grouped_mapping.Decode(data, m)
+		err = groupedmapping.Decode(data, m)
 		if err != nil {
 			return nil, err
 		}

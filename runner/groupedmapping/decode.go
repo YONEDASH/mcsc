@@ -1,4 +1,4 @@
-package grouped_mapping
+package groupedmapping
 
 import (
 	"errors"
