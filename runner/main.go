@@ -4,238 +4,129 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 	"log"
 	"os"
-	"path"
-	"shadercompat/files"
-	"shadercompat/groupedmapping"
-	"shadercompat/properties"
-	"shadercompat/shader"
+	"shadercompat/repository"
+	"shadercompat/runtime"
 	"strings"
 )
 
 var (
-	shaderMappingsPath = flag.String("s", "", "directory containing shaders")
-	modMappingsPath    = flag.String("m", "", "directory containing grouped mappings of mods")
-	categoriesPath     = flag.String("c", "", "file containing categories")
-	shaderName         = flag.String("shader", "", "shader name based on name set in shaders")
-	sourcePath         = flag.String("source", "", "shader source directory path OR zip file path")
+	repositoryPath = flag.String("repository", "./repository", "Path to local repository")
 )
-
-func handleFatal(err error) {
-	if err != nil {
-		log.Fatalf("an error occurred during execution: %v", err)
-	}
-}
 
 func main() {
 	flag.Parse()
 
-	if len(*shaderMappingsPath) == 0 || len(*modMappingsPath) == 0 || len(*categoriesPath) == 0 || len(*shaderName) == 0 || len(*sourcePath) == 0 {
-		flag.PrintDefaults()
-		os.Exit(1)
+	// Init app
+	a := app.New()
+	w := a.NewWindow("ShaderCompat")
+	w.SetFixedSize(true)
+	w.Resize(fyne.NewSize(600, 400))
+	w.CenterOnScreen()
+
+	context := &runtime.Context{
+		LocalPath: *repositoryPath,
+		Window:    w,
 	}
 
-	// Unzip
-	isExtracted := path.Ext(*sourcePath) == ".zip"
-	if isExtracted {
-		newPath := strings.TrimSuffix(*sourcePath, path.Ext(*sourcePath))
-		err := files.Unzip(*sourcePath, newPath)
-		if err != nil {
-			handleFatal(fmt.Errorf("failed to unzip %s: %v", *sourcePath, err))
-		}
-		*sourcePath = newPath
+	go setup(context)
 
-		defer func() {
-			err = os.RemoveAll(*sourcePath)
-			handleFatal(err)
-		}()
+	w.ShowAndRun()
+}
+
+func setup(context *runtime.Context) {
+	// Get repository version
+	updateLocalVersion(context)
+
+	// Get repository version
+	version, err := repository.GetVersion()
+	if err != nil {
+		context.RemoteVersion = runtime.UnknownVersion
+		context.ShowError(fmt.Errorf("failed to get repository version: %v", err))
 	} else {
-		stat, err := os.Stat(*sourcePath)
+		context.RemoteVersion = version
+	}
+
+	log.Printf("Local version: %s; Repository version: %s\n", context.LocalVersion, context.RemoteVersion)
+
+	// Load mappings
+	if err := context.LoadMappings(); err != nil {
+		context.ShowFatal(err)
+	}
+
+	// Main view
+	versionView := runtime.NewVersionView()
+	context.VersionView = versionView
+
+	versionCanvas := versionView.Build(context)
+	if err := versionView.Update(context); err != nil {
+		context.ShowFatal(err)
+	}
+
+	shaderView := runtime.NewShaderView()
+	context.ShaderView = shaderView
+	shaderCanvas := shaderView.Build(context)
+
+	mainView := container.NewVBox(
+		container.NewHBox(
+			container.NewVBox(
+				runtime.Header("Repository"),
+				versionCanvas,
+				runtime.Header("Shader"),
+				shaderCanvas,
+			),
+			widget.NewSeparator(),
+			container.NewVBox(
+				runtime.Header("Mods"),
+				widget.NewSeparator(),
+				runtime.Header("Patch"),
+			),
+		),
+	)
+
+	context.Window.SetContent(mainView)
+
+}
+
+func updateLocalVersion(context *runtime.Context) {
+	versionFilePath := fmt.Sprintf("%s/%s", context.LocalPath, repository.VersionPath)
+	if f, err := os.Stat(versionFilePath); errors.Is(err, os.ErrNotExist) {
+		context.LocalVersion = runtime.UnknownVersion
+	} else if f.IsDir() {
+		context.ShowFatal(fmt.Errorf("version file is a directory"))
+	} else {
+		data, err := os.ReadFile(versionFilePath)
 		if err != nil {
-			handleFatal(fmt.Errorf("source path %s does not exist", *sourcePath))
+			context.ShowFatal(err)
 		}
-		if stat.IsDir() {
-			handleFatal(fmt.Errorf("source path %s is not a directory", *sourcePath))
-		}
+		context.LocalVersion = strings.TrimSuffix(string(data), "\n")
+	}
+}
+
+/*
+func main() {
+	a := app.New()
+	w := a.NewWindow("ShaderCompat")
+	w.SetFixedSize(true)
+	w.Resize(fyne.NewSize(400, 300))
+
+	context := &gui.Context{
+		Window:       w,
+		SelectedMods: make(map[string]bool),
 	}
 
-	categories, err := loadCategories()
-	handleFatal(err)
-
-	modMappings, err := loadModMappings()
-	handleFatal(err)
-	err = validateSectionCategories(modMappings, categories)
-	handleFatal(err)
-
-	log.Println("Loaded", len(modMappings), "mods with", groupedmapping.CountEntries(modMappings), "entries.")
-
-	transformers := shader.InitTransformers()
-
-	shaders, err := loadShaders()
-	handleFatal(err)
-
-	instance, ok := shaders[*shaderName]
-	if !ok {
-		handleFatal(fmt.Errorf("shader %s not found", *shaderName))
-	}
-	err = shader.Validate(instance, transformers, categories)
+	view, err := gui.View(context)
 	if err != nil {
-		handleFatal(fmt.Errorf("failed to validate shader mapping %s: %v", *shaderName, err))
+		gui.ShowError(context, err)
+		return
 	}
-	log.Println("Loaded shader", *shaderName, "with", len(instance.Mappings), "shaders.")
-
-	mappings, err := instance.Map(modMappings, transformers)
-	handleFatal(err)
-
-	// TODO Copy shader source to a new file
-	outputPath := path.Join(".", fmt.Sprintf("%s_generated", *shaderName))
-	if _, err := os.Stat(outputPath); err == nil {
-		err = os.RemoveAll(outputPath)
-		handleFatal(err)
-	}
-
-	err = files.Copy(*sourcePath, outputPath)
-	handleFatal(err)
-
-	err = writeMappings(outputPath, mappings, instance)
-	handleFatal(err)
-
+	w.SetContent(view)
+	w.ShowAndRun()
 }
 
-func writeMappings(srcPath string, mappings map[string]map[string][]string, instance shader.Instance) error {
-	for typeName := range mappings {
-		shaderType := instance.Types[typeName]
-		filePath := path.Join(srcPath, shaderType.FilePath)
-
-		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			return err
-		}
-
-		data, err := os.ReadFile(filePath)
-		if err != nil {
-			return err
-		}
-
-		model, err := properties.Load(data)
-		if err != nil {
-			return fmt.Errorf("failed to load model from file %s: %v", filePath, err)
-		}
-
-		for key, typeMappings := range mappings[typeName] {
-			values := make(map[string]bool)
-			before, ok := model.Get(key)
-			if ok {
-				vals := strings.Split(strings.TrimSpace(before), instance.Separator)
-				for _, v := range vals {
-					values[v] = true
-				}
-			}
-
-			for _, v := range typeMappings {
-				values[v] = true
-			}
-
-			value := ""
-			i := 0
-			for v := range values {
-				if i < len(values)-1 {
-					value += v + instance.Separator
-				} else {
-					value += v
-				}
-				i++
-			}
-			model.Set(key, value)
-		}
-
-		file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-		err = model.Write(file)
-		if err != nil {
-			return fmt.Errorf("failed to write model to file %s: %v", filePath, err)
-		}
-		err = file.Close()
-		if err != nil {
-			return fmt.Errorf("failed to close file %s: %v", filePath, err)
-		}
-	}
-	return nil
-}
-
-func loadCategories() (shader.Categories, error) {
-	categories := shader.Categories{}
-	err := categories.Load(*categoriesPath)
-	return categories, err
-}
-
-func loadShaders() (map[string]shader.Instance, error) {
-	dirPath := *shaderMappingsPath
-	files, err := os.ReadDir(dirPath)
-	if err != nil {
-		return nil, err
-	}
-
-	m := make(map[string]shader.Instance)
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-
-		filePath := path.Join(dirPath, file.Name())
-		if path.Ext(filePath) != ".json" {
-			return nil, fmt.Errorf("file %s is not a json file", filePath)
-		}
-
-		i := shader.Instance{}
-		err = i.Load(filePath)
-		if err != nil {
-			return nil, err
-		}
-
-		m[i.Name] = i
-	}
-
-	return m, nil
-}
-
-func loadModMappings() (map[string][]string, error) {
-	dirPath := *modMappingsPath
-	files, err := os.ReadDir(dirPath)
-	if err != nil {
-		return nil, err
-	}
-
-	m := make(map[string][]string)
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-
-		filePath := path.Join(dirPath, file.Name())
-		if path.Ext(filePath) != ".gm" {
-			return nil, fmt.Errorf("file %s is not a grouped mapping (.gm) file", filePath)
-		}
-
-		data, err := os.ReadFile(filePath)
-		if err != nil {
-			return nil, err
-		}
-		err = groupedmapping.Decode(data, m)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return m, nil
-}
-
-func validateSectionCategories(mappings map[string][]string, categories shader.Categories) error {
-	for section := range mappings {
-		if !categories.Contains(section) {
-			return errors.New("undefined category: " + section)
-		}
-	}
-	return nil
-}
+*/
