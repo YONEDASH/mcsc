@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"log"
 	"os"
@@ -26,13 +27,19 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("ShaderCompat")
 	w.SetFixedSize(true)
-	w.Resize(fyne.NewSize(600, 400))
 	w.CenterOnScreen()
 
 	context := &runtime.Context{
 		LocalPath: *repositoryPath,
 		Window:    w,
 	}
+
+	waitBar := widget.NewProgressBarInfinite()
+	w.SetContent(container.NewCenter(container.NewVBox(
+		waitBar,
+		widget.NewLabel("Loading"),
+	)))
+	waitBar.Resize(fyne.NewSize(100, 20))
 
 	go setup(context)
 
@@ -72,6 +79,14 @@ func setup(context *runtime.Context) {
 	context.ShaderView = shaderView
 	shaderCanvas := shaderView.Build(context)
 
+	modsView := runtime.NewModsView()
+	context.ModsView = modsView
+	modsCanvas := modsView.Build(context)
+
+	patchView := runtime.NewPatchView()
+	context.PatchView = patchView
+	patchCanvas := patchView.Build(context)
+
 	mainView := container.NewVBox(
 		container.NewHBox(
 			container.NewVBox(
@@ -83,8 +98,11 @@ func setup(context *runtime.Context) {
 			widget.NewSeparator(),
 			container.NewVBox(
 				runtime.Header("Mods"),
+				modsCanvas,
+				layout.NewSpacer(),
 				widget.NewSeparator(),
 				runtime.Header("Patch"),
+				patchCanvas,
 			),
 		),
 	)
