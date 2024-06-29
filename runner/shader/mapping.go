@@ -24,7 +24,7 @@ type Instance struct {
 	Name      string                          `json:"name"`
 	Separator string                          `json:"separator"`
 	Types     map[string]Type                 `json:"types"`
-	Mappings  map[string]map[string][]Mapping `json:"shaders"`
+	Mappings  map[string]map[string][]Mapping `json:"mappings"`
 }
 
 func (s *Instance) Load(filePath string) error {
