@@ -211,7 +211,7 @@ func (v *shaderView) Build(ctx *Context) fyne.CanvasObject {
 				ctx.ShowError(err)
 			}
 		}()
-		ctx.SelectedFilePath = strings.TrimPrefix("file:///", reader.URI().String())
+		ctx.SelectedFilePath = strings.TrimPrefix(reader.URI().String(), "file://")
 		if err := v.Update(ctx); err != nil {
 			ctx.ShowError(fmt.Errorf("failed to update shader view: %v", err))
 		}
@@ -323,7 +323,7 @@ func (v *patchView) Build(ctx *Context) fyne.CanvasObject {
 			return
 		}
 
-		filePath := strings.TrimPrefix("file:///", uw.URI().String())
+		filePath := strings.TrimPrefix(uw.URI().String(), "file://")
 		if err := os.Remove(filePath); err != nil && errors.Is(err, os.ErrNotExist) {
 			ctx.ShowError(err)
 			return
