@@ -149,8 +149,9 @@ func (c *Context) Patch(outputPath string) error {
 	shaderName := c.SelectedShaderName
 
 	instance, ok := shaders[shaderName]
+
 	if !ok {
-		return fmt.Errorf("shader %s not found")
+		return fmt.Errorf("shader %s not found", shaderName)
 	}
 	err = shader.Validate(instance, transformers, c.categories)
 	if err != nil {
@@ -187,12 +188,10 @@ func (c *Context) Patch(outputPath string) error {
 func (c *Context) loadSelectedModMappings() (map[string][]string, error) {
 	m := make(map[string][]string)
 
-	for modName, state := range c.ModStates {
+	for filePath, state := range c.ModStates {
 		if !state {
 			continue
 		}
-
-		filePath := path.Join(c.LocalPath, "mods", modName+".gm")
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			return nil, err
@@ -237,6 +236,8 @@ func (c *Context) loadShaders() error {
 		if err != nil {
 			return err
 		}
+
+		fmt.Println(i.Name, "->", i)
 
 		m[i.Name] = i
 	}
